@@ -1,18 +1,28 @@
-from openai import OpenAI
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+import openai
 import os
-from dotenv import load_dotenv
 
-load_dotenv()
+app = Flask(__name__)
+CORS(app)
 
-api_key = os.getenv("OPENAI_API_KEY")
+# 環境変数からOpenAI APIキーをロード
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
-client = OpenAI(api_key=api_key)
+@app.route('/api/openai_chat', methods=['POST'])
+def openai_chat():
+    data = request.json
+    try:
+        # 新しいAPIインターフェースを使用してチャットの応答を生成
+        response = openai.ChatCompletion.create(
+            model="gpt-4",
+            messages=data["messages"]
+        )
+        # 応答をJSON形式で返す
+        return jsonify(response)
+    except Exception as e:
+        # エラー処理
+        return jsonify({"error": str(e)}), 500
 
-stream = client.chat.completions.create(
-    model="gpt-4",
-    messages=[{"role": "user", "content": "Say this is a test"}],
-    stream=True,
-)
-for chunk in stream:
-    if chunk.choices[0].delta.content is not None:
-        print(chunk.choices[0].delta.content, end="")
+if __name__ == '__main__':
+    app.run(debug=True)
