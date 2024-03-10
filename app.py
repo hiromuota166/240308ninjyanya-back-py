@@ -18,7 +18,7 @@ def openai_chat():
 
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-4", messages=data["messages"]
+            model="gpt-4", response_format={ "type": "json_object" },messages=data["messages"]
         )
         return jsonify(response)
 
